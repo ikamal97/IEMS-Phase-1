@@ -13,11 +13,9 @@ class Job(object):
         self.id = int(id)
         self.processing_time = int(processing_time)
         self.weight = int(weight)
-        """Play with this variable to determine how to sort jobs.
-           Currently just returns the given weight, but maybe try
-           weight*processing_time*val.
-           val woudl be a command line parameter that could multiply weight"""
-        self.heuristic_weight = int(weight) #+ val*int(processing_time)
+
+        #new weight to sort the list on
+        self.heuristic_weight = int(weight)
 
     def update_heuristic_weight(self,average_processing_time, avg_weight):
         if average_processing_time*self.processing_time <= self.weight:

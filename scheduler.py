@@ -1,16 +1,15 @@
 import sys
 import csv
 import argparse
+import pyexcel_xlsx
+from statistics import mean
 
-#TODO: if the input is a textfile, the infrastructure is done.
-#Would need some minor changes if formatting is different, but shouldn't be bad.
-# would just need to come up with some ways of assigning weights
-# to each job and sorting the list based on that
+import math
 
 class Job(object):
 
     #inside the object all functions, member variables take self as a parameter, basically like "this"
-    def __init__(self, id, processing_time, weight, val):
+    def __init__(self, id, processing_time, weight):
         self.id = int(id)
         self.processing_time = int(processing_time)
         self.weight = int(weight)
@@ -18,7 +17,11 @@ class Job(object):
            Currently just returns the given weight, but maybe try
            weight*processing_time*val.
            val woudl be a command line parameter that could multiply weight"""
-        self.heuristic_weight = int(weight) + val*int(processing_time)
+        self.heuristic_weight = int(weight) #+ val*int(processing_time)
+
+    def update_heuristic_weight(self,average_processing_time, avg_weight):
+        if average_processing_time*self.processing_time <= self.weight:
+            self.heuristic_weight = (average_processing_time)*self.processing_time + (avg_weight)*self.weight
 
     def __lt__(self, Job2):
         return self.heuristic_weight < Job2.heuristic_weight
@@ -33,6 +36,7 @@ def sort_jobs(lst_of_jobs):
     #get all the heuristic weights
     for j in lst_of_jobs:
         heur_weight.append(j.heuristic_weight)
+
     #use them to make a new ordering of jobs
     # this line goes through and sorts the lst_of_jobs in descending order
     # based on the corresponding value of its heuristic_weight
@@ -55,18 +59,32 @@ def evaluate_cost(lst_of_jobs):
         objective_value = objective_value + cost
     return objective_value
 
+
 """Read in a file given by filename, creates Job objects for each line.
-The format in the file is currently job#, processing_time, weight.
-returns a list of Jobs"""
-def fileReader(filename, param_weight):
+ The format in the file is currently job#, processing_time, weight.
+ returns a list of Jobs"""
+def excel_reader(filename):
+    data = pyexcel_xlsx.get_data(filename)
+    import json
     jobs = [] #list of each job
-    with open(filename, 'r') as input:              #open the file at the given path
-        reader = csv.reader(input, delimiter="\t")  #setup to read with tab separating values
-        for row in reader:                          #for each data line
-            parsed = row[0].split()                 #separate each element into its own element in a list
-            job = Job(parsed[0],parsed[1],parsed[2],param_weight)
-            jobs.append(job)
+    all_data = (json.loads(json.dumps(data)))
+    sheet1 = all_data['Sheet1']
+    for row_idx in range(0,len(sheet1)):
+        if row_idx == 0:
+            continue #skip over the heading row
+        job_description = sheet1[row_idx]
+        job = Job(job_description[0], job_description[1], job_description[2])
+        jobs.append(job)
     return jobs
+
+def average_processing(lst_of_jobs):
+    lst_processing_times = [x.processing_time for x in lst_of_jobs]
+    lst_weights = [x.weight for x in lst_of_jobs]
+    avg_proc = mean(lst_processing_times)
+    avg_weight = mean(lst_weights)
+
+    return avg_proc, avg_weight
+
 
 def main():
     if len(sys.argv) < 2:
@@ -76,16 +94,22 @@ def main():
     parser = argparse.ArgumentParser(description='Heuristic Program for Single Machine Scheduling')
     parser.add_argument('-i', '--input',dest='input',action='store',
                     help='Input file name for simulation.')
-    parser.add_argument('-v', '--value',dest='value',type=float, default=1.0,
-                    help='Amount to value job weight over processing time.')
+    parser.add_argument('-v', '--verbose',dest='verbose',action='store_true', default=False,
+                    help='Prints out job ordering if given -v.')
 
     args = parser.parse_args()
     # args.value is command line parameter to weight processing time relative to given weight
+    verbose = args.verbose
 
-    jobs = fileReader(args.input, args.value)
+    jobs = excel_reader(args.input)
+    #calculate the average processing time and average weight
+    avg_proc, avg_weight = average_processing(jobs)
+
     print("Ordering of jobs from the input file")
     for j in jobs:
-        print(j)
+        j.update_heuristic_weight(avg_proc, avg_weight)
+        if verbose == True:
+            print(j)
 
     init_objective_value = evaluate_cost(jobs)
     print("Objective value is {0}".format(init_objective_value))
@@ -93,7 +117,8 @@ def main():
     new_order = sort_jobs(jobs)
     print("After applying heuristic the order is: ")
     for j in new_order:
-        print(j)
+        if verbose == True:
+            print(j)
 
     new_objective_value = evaluate_cost(new_order)
     print("Objective value is {0}".format(new_objective_value))

@@ -1,10 +1,7 @@
 import sys
-import csv
 import argparse
 import pyexcel_xlsx
 from statistics import mean
-
-import math
 
 class Job(object):
 
@@ -86,7 +83,7 @@ def average_processing(lst_of_jobs):
 
 def main():
     if len(sys.argv) < 2:
-        print("Too few arguments. Use -h or --help to print out options.")
+        print("Too few arguments or missing pyexcel-xlsx. Run pip install pyexce-xlsx. Use -h or --help to print out options.")
         exit()
 
     parser = argparse.ArgumentParser(description='Heuristic Program for Single Machine Scheduling')

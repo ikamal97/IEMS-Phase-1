@@ -202,7 +202,7 @@ def main():
     #define the grid
     grid_size = 100
 
-    #generate a 2d grid, -1 means this location is free
+    #generate a 2d grid, 0 means this location is free
     g = Grid(grid_size)
 
     #while there are still jobs that have not completed

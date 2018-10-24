@@ -5,7 +5,7 @@ from statistics import mean
 
 class Grid(object):
     objective_value = 0
-    current_time = 1
+    current_time = 0
     completed_jobs = 0
     jobs_in_progress = []
     free_marker = 0
@@ -48,6 +48,7 @@ class Grid(object):
         for row_idx in range(coordinates[0],coordinates[0]+job.height):
             for col_idx in range(coordinates[1], coordinates[1] + job.width):
                 self.grid[row_idx][col_idx] = job.id
+                job.started_at_time = self.current_time
         self.jobs_in_progress.append(job)
 
     #At the end of each loop call tick. Increments the running count for each allocated job,
@@ -90,6 +91,7 @@ class Job(object):
     x = -1 #job has not been allocated
     y = -1 #job has not been allocated
     complete = False
+    started_at_time = -1
     #inside the object all functions, member variables take self as a parameter, basically like "this"
     def __init__(self, id, processing_time, weight, width, height):
         self.id = int(id)
@@ -174,14 +176,16 @@ def average_area(lst_of_jobs):
 
 def main():
     if len(sys.argv) < 2:
-        print("Too few arguments or missing pyexcel-xlsx. Run pip install pyexce-xlsx. Use -h or --help to print out options.")
+        print("Too few arguments or missing pyexcel-xlsx. Run pip install pyexcel-xlsx. Use -h or --help to print out options.")
         exit()
 
-    parser = argparse.ArgumentParser(description='Heuristic Program for 3D Scheduling')
+    parser = argparse.ArgumentParser(description='Heuristic Program for 3D Scheduling. pip install pyexcel-xlsx required.')
     parser.add_argument('-i', '--input',dest='input',action='store',
                     help='Input file name for simulation.')
     parser.add_argument('-v', '--verbose',dest='verbose',action='store_true', default=False,
                     help='Prints out job ordering if given -v.')
+    parser.add_argument('-g', '--grid-size',dest='grid_size',action='store', default=100,
+                    help='Define the size of the square grid. Defaults to 100')
 
     args = parser.parse_args()
     # args.value is command line parameter to weight processing time relative to given weight
@@ -200,10 +204,10 @@ def main():
     sorted_jobs = sort_jobs(jobs)
 
     #define the grid
-    grid_size = 100
+    # grid_size = 100
 
     #generate a 2d grid, 0 means this location is free
-    g = Grid(grid_size)
+    g = Grid(args.grid_size)
 
     #while there are still jobs that have not completed
     while g.completed_jobs != len(jobs):
@@ -214,8 +218,12 @@ def main():
                     g.placeJob(job, coords)
 
         g.tick()
-        print(g)
+        if args.verbose == True:
+            print(g)
     print("Objective value is {0}".format(g.objective_value))
+
+    for j in jobs:
+        print("Job id: {0} started at time: {1}".format(j.id,j.started_at_time))
 
 
 if __name__ == "__main__":

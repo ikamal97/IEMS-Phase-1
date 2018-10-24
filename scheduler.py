@@ -4,7 +4,7 @@ import pyexcel_xlsx
 from statistics import mean
 
 class Job(object):
-
+    start_time = -1
     #inside the object all functions, member variables take self as a parameter, basically like "this"
     def __init__(self, id, processing_time, weight):
         self.id = int(id)
@@ -17,6 +17,9 @@ class Job(object):
     def update_heuristic_weight(self,average_processing_time, avg_weight):
         if average_processing_time*self.processing_time <= self.weight:
             self.heuristic_weight = (average_processing_time)*self.processing_time + (avg_weight)*self.weight
+
+    def update_start_time(self,time):
+        self.start_time = time
 
     def __lt__(self, Job2):
         return self.heuristic_weight < Job2.heuristic_weight
@@ -46,9 +49,10 @@ we did."""
 def evaluate_cost(lst_of_jobs):
     objective_value = 0
     current_time = 0
-    for j in lst_of_jobs:
-        current_time = current_time + j.processing_time
 
+    for j in lst_of_jobs:
+        j.update_start_time(current_time)
+        current_time = current_time + j.processing_time
         #cost calculation is based off of the last slice that this job occupied
         cost = current_time * j.weight
         objective_value = objective_value + cost
@@ -100,22 +104,25 @@ def main():
     #calculate the average processing time and average weight
     avg_proc, avg_weight = average_processing(jobs)
 
-    print("Ordering of jobs from the input file")
+    if verbose == True:
+        print("Ordering of jobs from the input file")
     for j in jobs:
         j.update_heuristic_weight(avg_proc, avg_weight)
         if verbose == True:
             print(j)
 
     init_objective_value = evaluate_cost(jobs)
-    print("Objective value is {0}".format(init_objective_value))
+    # print("Objective value is {0}".format(init_objective_value))
 
     new_order = sort_jobs(jobs)
     print("After applying heuristic the order is: ")
     for j in new_order:
-        if verbose == True:
             print(j)
 
     new_objective_value = evaluate_cost(new_order)
+
+    for j in jobs:
+        print("Job id: {} started at time: {}".format(j.id,j.start_time))
     print("Objective value is {0}".format(new_objective_value))
 
 if __name__ == "__main__":

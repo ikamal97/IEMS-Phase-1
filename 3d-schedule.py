@@ -203,11 +203,14 @@ def main():
     #sort all jobs based on the heuristic priority encoding
     sorted_jobs = sort_jobs(jobs)
 
+    for j in sorted_jobs:
+        print(j)
+
     #define the grid
     # grid_size = 100
 
     #generate a 2d grid, 0 means this location is free
-    g = Grid(args.grid_size)
+    g = Grid(int(args.grid_size))
 
     #while there are still jobs that have not completed
     while g.completed_jobs != len(jobs):
@@ -220,10 +223,12 @@ def main():
         g.tick()
         if args.verbose == True:
             print(g)
-    print("Objective value is {0}".format(g.objective_value))
 
+    print("\n")
     for j in jobs:
-        print("Job id: {0} started at time: {1}".format(j.id,j.started_at_time))
+        print("Job #{0} started at time: {1}".format(j.id,j.started_at_time))
+
+    print("\nObjective value is {0}".format(g.objective_value))
 
 
 if __name__ == "__main__":

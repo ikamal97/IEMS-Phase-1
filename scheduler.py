@@ -121,9 +121,10 @@ def main():
 
     new_objective_value = evaluate_cost(new_order)
 
+    print("\nPrinting out start times for each job.")
     for j in jobs:
-        print("Job id: {} started at time: {}".format(j.id,j.start_time))
-    print("Objective value is {0}".format(new_objective_value))
+        print("Job #{} started at time: {}".format(j.id,j.start_time))
+    print("\nObjective value is {0}".format(new_objective_value))
 
 if __name__ == "__main__":
     main()

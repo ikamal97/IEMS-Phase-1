@@ -1,0 +1,15 @@
+option log_file '1d-case3.log';
+
+model 1d.mod;
+data case3-1d.dat;
+let jobs := 1 .. 900;
+
+option solver cplex;
+option cplex_options 'time=3600';
+let total_time := sum{j in jobs} processing_time[j];
+
+solve;
+display completetion_time;
+display job_order;
+
+option log_file '';

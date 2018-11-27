@@ -1,0 +1,16 @@
+option log_file '1d-case2.log';
+
+model 1d.mod;
+data case2-1d.dat;
+let jobs := 1 .. 700;
+
+option solver cplex;
+option cplex_options 'threads=8';
+/* option cplex_options 'time=3600'; */
+let total_time := sum{j in jobs} processing_time[j];
+
+solve;
+display completetion_time;
+display job_order;
+
+option log_file '';

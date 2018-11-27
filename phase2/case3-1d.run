@@ -5,7 +5,7 @@ data case3-1d.dat;
 let jobs := 1 .. 900;
 
 option solver cplex;
-option cplex_options 'time=3600';
+option cplex_options 'concurrentopt threads=8 time=10800 mipdisplay=2';
 let total_time := sum{j in jobs} processing_time[j];
 
 solve;
